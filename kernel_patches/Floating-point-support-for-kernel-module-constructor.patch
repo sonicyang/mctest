@@ -1,0 +1,66 @@
+From f31aff95a0ae863f12e159143b9337156242005b Mon Sep 17 00:00:00 2001
+From: George Kang <georgekang03@gmail.com>
+Date: Fri, 6 May 2016 02:17:39 +0800
+Subject: [PATCH] Enable floating point support for constructors in kernel
+ module
+
+The construction process in kernel module is enclosed by floating
+point support functions.  This feature now only supports
+ARM and X86.
+---
+ kernel/module.c | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/module.c b/kernel/module.c
+index 38c7bd5..fc56787 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -62,6 +62,19 @@
+ #include <uapi/linux/module.h>
+ #include "module-internal.h"
+ 
++#if (defined(CONFIG_ARM) || defined(CONFIG_ARM64)) && defined(CONFIG_KERNEL_MODE_NEON)
++#include <asm/neon.h>
++#endif
++
++#ifdef CONFIG_X86
++#include <linux/version.h>
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(4,2,0)
++#include <asm/i387.h>
++#else
++#include <asm/fpu/api.h>
++#endif
++#endif
++
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/module.h>
+ 
+@@ -3187,8 +3200,24 @@ static void do_mod_ctors(struct module *mod)
+ #ifdef CONFIG_CONSTRUCTORS
+ 	unsigned long i;
+ 
+-	for (i = 0; i < mod->num_ctors; i++)
++	for (i = 0; i < mod->num_ctors; i++) {
++#ifdef CONFIG_KERNEL_MODE_NEON
++		kernel_neon_begin();
++#endif
++#ifdef CONFIG_X86
++		kernel_fpu_begin();
++#endif
++
+ 		mod->ctors[i]();
++
++#ifdef CONFIG_KERNEL_MODE_NEON
++		kernel_neon_end();
++#endif
++#ifdef CONFIG_X86
++		kernel_fpu_end();
++#endif
++
++	}
+ #endif
+ }
+ 
+-- 
+2.1.4
+

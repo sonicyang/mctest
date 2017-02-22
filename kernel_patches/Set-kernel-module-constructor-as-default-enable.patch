@@ -1,0 +1,27 @@
+From 7f6f3136b247a37e1c0aa944e9f004d50fd706c2 Mon Sep 17 00:00:00 2001
+From: George Kang <georgekang03@gmail.com>
+Date: Tue, 3 May 2016 17:53:56 +0800
+Subject: [PATCH] Set constructor in kernel as default enable
+
+This patch sets CONFIG_CONSTRUCTORS as default
+enable to run the program like C++ constructor in
+.init_array section of a kernel module.
+---
+ init/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/init/Kconfig b/init/Kconfig
+index a7c81c0..841abdf 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -19,6 +19,7 @@ config DEFCONFIG_LIST
+ config CONSTRUCTORS
+ 	bool
+ 	depends on !UML
++	default y
+ 
+ config IRQ_WORK
+ 	bool
+-- 
+2.1.4
+
