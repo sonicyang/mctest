@@ -1,0 +1,10 @@
+obj-m:= mctest.o
+
+mctest-objs := main.o
+mctest-objs += motion_interface.o $(MOTION_OBJS) $(MOTION_ROBOT_OBJS) libm.a
+
+
+ccflags-y := -I$(src) -DARCH=$(ARCH) -O3
+ifeq ($(ARCH), arm)
+ccflags-y += -mfloat-abi=softfp
+endif
